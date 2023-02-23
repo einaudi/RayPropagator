@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QCheckBox
 
 from RayPropagation.RayPropagation import Lens
+
 
 class OpticalElementsWidget(QWidget):
     
@@ -16,12 +17,15 @@ class OpticalElementsWidget(QWidget):
 
     def _init_widgets(self):
 
-        self.elementsTable = QTableWidget(0, 3)
+        self.elementsTable = QTableWidget(0, 5)
         self.elementsTable.setHorizontalHeaderLabels([
+            '',
             'Lens',
             'Focal length [mm]',
-            'Position [mm]'
+            'Position [mm]',
+            'Aperture [mm]'
         ])
+        self.elementsTable.setColumnWidth(0, 15)
 
         self.btnAdd = QPushButton('Add lens')
         self.btnRemove = QPushButton('Remove lens')
@@ -51,26 +55,40 @@ class OpticalElementsWidget(QWidget):
 
         self.elementsTable.insertRow(rowCount)
 
-        self.elementsTable.setItem(
+        self.elementsTable.setCellWidget(
             rowCount,
             0,
-            QTableWidgetItem()
+            QCheckBox()
         )
-        self.elementsTable.item(rowCount, 0).setText(name)
+        self.elementsTable.cellWidget(rowCount, 0).setChecked(True)
 
         self.elementsTable.setItem(
             rowCount,
             1,
             QTableWidgetItem()
         )
-        self.elementsTable.item(rowCount, 1).setText('50')
+        self.elementsTable.item(rowCount, 1).setText(name)
 
         self.elementsTable.setItem(
             rowCount,
             2,
             QTableWidgetItem()
         )
-        self.elementsTable.item(rowCount, 2).setText('10')
+        self.elementsTable.item(rowCount, 2).setText('50')
+
+        self.elementsTable.setItem(
+            rowCount,
+            3,
+            QTableWidgetItem()
+        )
+        self.elementsTable.item(rowCount, 3).setText('10')
+
+        self.elementsTable.setItem(
+            rowCount,
+            4,
+            QTableWidgetItem()
+        )
+        self.elementsTable.item(rowCount, 4).setText('25.4')
 
     def _remove_lens(self):
 
@@ -84,13 +102,15 @@ class OpticalElementsWidget(QWidget):
         ret = []
         try:
             for i in range(rowCount):
-                name = self.elementsTable.item(i, 0).text()
-                f = float(self.elementsTable.item(i, 1).text()) * 1e-3
-                pos = float(self.elementsTable.item(i, 2).text()) * 1e-3
+                if self.elementsTable.cellWidget(i, 0).isChecked():
+                    name = self.elementsTable.item(i, 1).text()
+                    f = float(self.elementsTable.item(i, 2).text()) * 1e-3
+                    pos = float(self.elementsTable.item(i, 3).text()) * 1e-3
+                    aperture = float(self.elementsTable.item(i, 4).text()) * 1e-3
 
-                ret.append(
-                    Lens(name, f, pos)
-                )
+                    ret.append(
+                        Lens(name, f, pos, aperture)
+                    )
         except ValueError:
             return []
 

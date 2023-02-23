@@ -5,7 +5,7 @@ from Widgets.RaysWidget import RaysWidget
 from Widgets.ElementsWidget import OpticalElementsWidget
 
 import numpy as np
-from RayPropagation.RayPropagation import Rays
+from RayPropagation.RayPropagation import find_imaging_planes
 
 
 class MainWidget(QWidget):
@@ -76,13 +76,44 @@ class MainWidget(QWidget):
         )
 
         # Plot rays
-        for ys in ys_list:
+        cs = self.raysWidget.get_colors()
+        for i, ys in enumerate(ys_list):
             self.plotWidget.plot(
                 xs * 1e3,
                 ys * 1e3,
-                c='C0'
+                c=cs[i]
+            )
+
+        # Plot apertures
+        for lens in lenses:
+            self.plotWidget.plot(
+                [lens.position*1e3, lens.position*1e3],
+                [0.5*lens.aperture*1e3, geometry['Y range']*1e3],
+                c='k'
+            )
+            self.plotWidget.plot(
+                [lens.position*1e3, lens.position*1e3],
+                [-geometry['Y range']*1e3, -0.5*lens.aperture*1e3],
+                c='k'
             )
 
         self.plotWidget.refresh()
 
+        mes = self.find_planes(xs, lenses)
+        self.propagateMessage.setText(mes)
+
         return 1
+
+    def find_planes(self, xs, lenses):
+
+        im_planes = find_imaging_planes(xs, lenses)
+
+        ret = ''
+        for plane in im_planes:
+            ret += 'Imaging plane at x = {:.2f} mm\n'.format(plane['x']*1e3)
+            ret += 'A = {:.4e} \n'.format(plane['A'])
+            ret += 'B = {:.4e} \n'.format(plane['B'])
+            ret += 'C = {:.4e} \n'.format(plane['C'])
+            ret += 'D = {:.4e} \n'.format(plane['D'])
+
+        return ret
